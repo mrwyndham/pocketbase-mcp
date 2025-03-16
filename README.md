@@ -53,6 +53,17 @@ A comprehensive MCP server that provides sophisticated tools for interacting wit
 ### User Management
 - `authenticate_user`: Authenticate a user and get auth token
 - `create_user`: Create a new user account
+- `list_auth_methods`: List all available authentication methods
+- `authenticate_with_oauth2`: Authenticate a user with OAuth2
+- `authenticate_with_otp`: Authenticate a user with one-time password
+- `auth_refresh`: Refresh authentication token
+- `request_verification`: Request email verification
+- `confirm_verification`: Confirm email verification with token
+- `request_password_reset`: Request password reset
+- `confirm_password_reset`: Confirm password reset with token
+- `request_email_change`: Request email change
+- `confirm_email_change`: Confirm email change with token
+- `impersonate_user`: Impersonate another user (admin only)
 
 ### Database Operations
 - `backup_database`: Create a backup of the PocketBase database with format options
@@ -167,6 +178,49 @@ await mcp.use_tool("pocketbase", "migrate_collection", {
     // Optional field transformations during migration
     tags: "JSON.parse(oldTags)"
   }
+});
+```
+
+### Authentication Methods
+```typescript
+// List available authentication methods
+await mcp.use_tool("pocketbase", "list_auth_methods", {
+  collection: "users"
+});
+
+// Authenticate with password
+await mcp.use_tool("pocketbase", "authenticate_user", {
+  email: "user@example.com",
+  password: "securepassword",
+  collection: "users"
+});
+
+// Authenticate with OAuth2
+await mcp.use_tool("pocketbase", "authenticate_with_oauth2", {
+  provider: "google",
+  code: "auth_code_from_provider",
+  codeVerifier: "code_verifier_from_pkce",
+  redirectUrl: "https://your-app.com/auth/callback",
+  collection: "users"
+});
+
+// Request password reset
+await mcp.use_tool("pocketbase", "request_password_reset", {
+  email: "user@example.com",
+  collection: "users"
+});
+
+// Confirm password reset
+await mcp.use_tool("pocketbase", "confirm_password_reset", {
+  token: "verification_token",
+  password: "new_password",
+  passwordConfirm: "new_password",
+  collection: "users"
+});
+
+// Refresh authentication token
+await mcp.use_tool("pocketbase", "auth_refresh", {
+  collection: "users"
 });
 ```
 
