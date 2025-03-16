@@ -1,8 +1,10 @@
 # Advanced PocketBase MCP Server
 
+[![smithery badge](https://smithery.ai/badge/pocketbase-server)](https://smithery.ai/server/pocketbase-server)
 A comprehensive MCP server that provides sophisticated tools for interacting with PocketBase databases. This server enables advanced database operations, schema management, and data manipulation through the Model Context Protocol (MCP).
 
 <a href="https://glama.ai/mcp/servers/z2xjuegxxh"><img width="380" height="200" src="https://glama.ai/mcp/servers/z2xjuegxxh/badge" alt="pocketbase-mcp-server MCP server" /></a>
+
 
 ## Features
 
@@ -255,6 +257,14 @@ The server includes TypeScript definitions for all operations, ensuring type saf
 4. Build: `npm run build`
 5. Start your PocketBase instance
 6. The MCP server will automatically connect to your PocketBase instance
+
+## Installing via Smithery
+
+To install PocketBase Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/pocketbase-server):
+
+```bash
+npx -y @smithery/cli install pocketbase-server --client claude
+```
 
 ## Contributing
 
