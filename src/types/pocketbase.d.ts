@@ -46,7 +46,82 @@ declare module 'pocketbase' {
       getFullList(batch?: number, options?: any): Promise<Record<string, any>[]>;
       update(id: string, data: Record<string, any>): Promise<Record<string, any>>;
       delete(id: string): Promise<boolean>;
+      
+      // Auth methods
+      listAuthMethods(): Promise<{
+        usernamePassword: boolean;
+        emailPassword: boolean;
+        authProviders: Array<{
+          name: string;
+          state: string;
+          codeVerifier: string;
+          codeChallenge: string;
+          codeChallengeMethod: string;
+          authUrl: string;
+        }>;
+      }>;
+      
       authWithPassword(email: string, password: string): Promise<{
+        token: string;
+        user: Record<string, any>;
+      }>;
+      
+      authWithOAuth2(
+        provider: string,
+        code: string,
+        codeVerifier: string,
+        redirectUrl: string
+      ): Promise<{
+        token: string;
+        user: Record<string, any>;
+        meta?: {
+          [key: string]: any;
+        };
+      }>;
+      
+      authWithOAuth2Code(
+        provider: string,
+        code: string,
+        codeVerifier: string,
+        redirectUrl: string
+      ): Promise<{
+        token: string;
+        user: Record<string, any>;
+        meta?: {
+          [key: string]: any;
+        };
+      }>;
+      
+      authWithOtp(email: string): Promise<boolean>;
+      
+      authRefresh(): Promise<{
+        token: string;
+        user: Record<string, any>;
+      }>;
+      
+      requestVerification(email: string): Promise<boolean>;
+      
+      confirmVerification(token: string): Promise<boolean>;
+      
+      requestPasswordReset(email: string): Promise<boolean>;
+      
+      confirmPasswordReset(
+        token: string,
+        password: string,
+        passwordConfirm: string
+      ): Promise<boolean>;
+      
+      requestEmailChange(newEmail: string): Promise<boolean>;
+      
+      confirmEmailChange(
+        token: string,
+        password: string
+      ): Promise<{
+        token: string;
+        user: Record<string, any>;
+      }>;
+      
+      impersonate(userId: string): Promise<{
         token: string;
         user: Record<string, any>;
       }>;

@@ -162,8 +162,22 @@ class PocketBaseServer {
           },
         },
         {
+          name: 'list_auth_methods',
+          description: 'List all available authentication methods',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              collection: {
+                type: 'string',
+                description: 'Collection name (default: users)',
+                default: 'users'
+              }
+            }
+          }
+        },
+        {
           name: 'authenticate_user',
-          description: 'Authenticate a user and get auth token',
+          description: 'Authenticate a user with email and password',
           inputSchema: {
             type: 'object',
             properties: {
@@ -175,8 +189,222 @@ class PocketBaseServer {
                 type: 'string',
                 description: 'User password',
               },
+              collection: {
+                type: 'string',
+                description: 'Collection name (default: users)',
+                default: 'users'
+              }
             },
             required: ['email', 'password'],
+          },
+        },
+        {
+          name: 'authenticate_with_oauth2',
+          description: 'Authenticate a user with OAuth2',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              provider: {
+                type: 'string',
+                description: 'OAuth2 provider name (e.g., google, facebook, github)',
+              },
+              code: {
+                type: 'string',
+                description: 'The authorization code returned from the OAuth2 provider',
+              },
+              codeVerifier: {
+                type: 'string',
+                description: 'PKCE code verifier',
+              },
+              redirectUrl: {
+                type: 'string',
+                description: 'The redirect URL used in the OAuth2 flow',
+              },
+              collection: {
+                type: 'string',
+                description: 'Collection name (default: users)',
+                default: 'users'
+              }
+            },
+            required: ['provider', 'code', 'codeVerifier', 'redirectUrl'],
+          },
+        },
+        {
+          name: 'authenticate_with_otp',
+          description: 'Authenticate a user with one-time password',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              email: {
+                type: 'string',
+                description: 'User email',
+              },
+              collection: {
+                type: 'string',
+                description: 'Collection name (default: users)',
+                default: 'users'
+              }
+            },
+            required: ['email'],
+          },
+        },
+        {
+          name: 'auth_refresh',
+          description: 'Refresh authentication token',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              collection: {
+                type: 'string',
+                description: 'Collection name (default: users)',
+                default: 'users'
+              }
+            }
+          },
+        },
+        {
+          name: 'request_verification',
+          description: 'Request email verification',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              email: {
+                type: 'string',
+                description: 'User email',
+              },
+              collection: {
+                type: 'string',
+                description: 'Collection name (default: users)',
+                default: 'users'
+              }
+            },
+            required: ['email'],
+          },
+        },
+        {
+          name: 'confirm_verification',
+          description: 'Confirm email verification with token',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              token: {
+                type: 'string',
+                description: 'Verification token',
+              },
+              collection: {
+                type: 'string',
+                description: 'Collection name (default: users)',
+                default: 'users'
+              }
+            },
+            required: ['token'],
+          },
+        },
+        {
+          name: 'request_password_reset',
+          description: 'Request password reset',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              email: {
+                type: 'string',
+                description: 'User email',
+              },
+              collection: {
+                type: 'string',
+                description: 'Collection name (default: users)',
+                default: 'users'
+              }
+            },
+            required: ['email'],
+          },
+        },
+        {
+          name: 'confirm_password_reset',
+          description: 'Confirm password reset with token',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              token: {
+                type: 'string',
+                description: 'Reset token',
+              },
+              password: {
+                type: 'string',
+                description: 'New password',
+              },
+              passwordConfirm: {
+                type: 'string',
+                description: 'Confirm new password',
+              },
+              collection: {
+                type: 'string',
+                description: 'Collection name (default: users)',
+                default: 'users'
+              }
+            },
+            required: ['token', 'password', 'passwordConfirm'],
+          },
+        },
+        {
+          name: 'request_email_change',
+          description: 'Request email change',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              newEmail: {
+                type: 'string',
+                description: 'New email address',
+              },
+              collection: {
+                type: 'string',
+                description: 'Collection name (default: users)',
+                default: 'users'
+              }
+            },
+            required: ['newEmail'],
+          },
+        },
+        {
+          name: 'confirm_email_change',
+          description: 'Confirm email change with token',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              token: {
+                type: 'string',
+                description: 'Email change token',
+              },
+              password: {
+                type: 'string',
+                description: 'Current password for confirmation',
+              },
+              collection: {
+                type: 'string',
+                description: 'Collection name (default: users)',
+                default: 'users'
+              }
+            },
+            required: ['token', 'password'],
+          },
+        },
+        {
+          name: 'impersonate_user',
+          description: 'Impersonate another user (admin only)',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              userId: {
+                type: 'string',
+                description: 'ID of the user to impersonate',
+              },
+              collection: {
+                type: 'string',
+                description: 'Collection name (default: users)',
+                default: 'users'
+              }
+            },
+            required: ['userId'],
           },
         },
         {
@@ -201,6 +429,11 @@ class PocketBaseServer {
                 type: 'string',
                 description: 'User name',
               },
+              collection: {
+                type: 'string',
+                description: 'Collection name (default: users)',
+                default: 'users'
+              }
             },
             required: ['email', 'password', 'passwordConfirm'],
           },
@@ -364,8 +597,30 @@ class PocketBaseServer {
             return await this.updateRecord(request.params.arguments);
           case 'delete_record':
             return await this.deleteRecord(request.params.arguments);
+          case 'list_auth_methods':
+            return await this.listAuthMethods(request.params.arguments);
           case 'authenticate_user':
             return await this.authenticateUser(request.params.arguments);
+          case 'authenticate_with_oauth2':
+            return await this.authenticateWithOAuth2(request.params.arguments);
+          case 'authenticate_with_otp':
+            return await this.authenticateWithOtp(request.params.arguments);
+          case 'auth_refresh':
+            return await this.authRefresh(request.params.arguments);
+          case 'request_verification':
+            return await this.requestVerification(request.params.arguments);
+          case 'confirm_verification':
+            return await this.confirmVerification(request.params.arguments);
+          case 'request_password_reset':
+            return await this.requestPasswordReset(request.params.arguments);
+          case 'confirm_password_reset':
+            return await this.confirmPasswordReset(request.params.arguments);
+          case 'request_email_change':
+            return await this.requestEmailChange(request.params.arguments);
+          case 'confirm_email_change':
+            return await this.confirmEmailChange(request.params.arguments);
+          case 'impersonate_user':
+            return await this.impersonateUser(request.params.arguments);
           case 'create_user':
             return await this.createUser(request.params.arguments);
           case 'get_collection_schema':
@@ -512,10 +767,31 @@ class PocketBaseServer {
     }
   }
 
+  private async listAuthMethods(args: any) {
+    try {
+      const collection = args.collection || 'users';
+      const authMethods = await this.pb.collection(collection).listAuthMethods();
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(authMethods, null, 2),
+          },
+        ],
+      };
+    } catch (error: unknown) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Failed to list auth methods: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
   private async authenticateUser(args: any) {
     try {
+      const collection = args.collection || 'users';
       const authData = await this.pb
-        .collection('users')
+        .collection(collection)
         .authWithPassword(args.email, args.password);
       return {
         content: [
@@ -533,9 +809,242 @@ class PocketBaseServer {
     }
   }
 
+  private async authenticateWithOAuth2(args: any) {
+    try {
+      const collection = args.collection || 'users';
+      const authData = await this.pb
+        .collection(collection)
+        .authWithOAuth2(
+          args.provider,
+          args.code,
+          args.codeVerifier,
+          args.redirectUrl
+        );
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(authData, null, 2),
+          },
+        ],
+      };
+    } catch (error: unknown) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `OAuth2 authentication failed: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  private async authenticateWithOtp(args: any) {
+    try {
+      const collection = args.collection || 'users';
+      const result = await this.pb
+        .collection(collection)
+        .authWithOtp(args.email);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: result }, null, 2),
+          },
+        ],
+      };
+    } catch (error: unknown) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `OTP authentication failed: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  private async authRefresh(args: any) {
+    try {
+      const collection = args.collection || 'users';
+      const authData = await this.pb
+        .collection(collection)
+        .authRefresh();
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(authData, null, 2),
+          },
+        ],
+      };
+    } catch (error: unknown) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Auth refresh failed: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  private async requestVerification(args: any) {
+    try {
+      const collection = args.collection || 'users';
+      const result = await this.pb
+        .collection(collection)
+        .requestVerification(args.email);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: result }, null, 2),
+          },
+        ],
+      };
+    } catch (error: unknown) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Verification request failed: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  private async confirmVerification(args: any) {
+    try {
+      const collection = args.collection || 'users';
+      const result = await this.pb
+        .collection(collection)
+        .confirmVerification(args.token);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: result }, null, 2),
+          },
+        ],
+      };
+    } catch (error: unknown) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Verification confirmation failed: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  private async requestPasswordReset(args: any) {
+    try {
+      const collection = args.collection || 'users';
+      const result = await this.pb
+        .collection(collection)
+        .requestPasswordReset(args.email);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: result }, null, 2),
+          },
+        ],
+      };
+    } catch (error: unknown) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Password reset request failed: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  private async confirmPasswordReset(args: any) {
+    try {
+      const collection = args.collection || 'users';
+      const result = await this.pb
+        .collection(collection)
+        .confirmPasswordReset(
+          args.token,
+          args.password,
+          args.passwordConfirm
+        );
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: result }, null, 2),
+          },
+        ],
+      };
+    } catch (error: unknown) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Password reset confirmation failed: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  private async requestEmailChange(args: any) {
+    try {
+      const collection = args.collection || 'users';
+      const result = await this.pb
+        .collection(collection)
+        .requestEmailChange(args.newEmail);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: result }, null, 2),
+          },
+        ],
+      };
+    } catch (error: unknown) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Email change request failed: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  private async confirmEmailChange(args: any) {
+    try {
+      const collection = args.collection || 'users';
+      const authData = await this.pb
+        .collection(collection)
+        .confirmEmailChange(
+          args.token,
+          args.password
+        );
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(authData, null, 2),
+          },
+        ],
+      };
+    } catch (error: unknown) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Email change confirmation failed: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  private async impersonateUser(args: any) {
+    try {
+      const collection = args.collection || 'users';
+      const authData = await this.pb
+        .collection(collection)
+        .impersonate(args.userId);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(authData, null, 2),
+          },
+        ],
+      };
+    } catch (error: unknown) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `User impersonation failed: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
   private async createUser(args: any) {
     try {
-      const result = await this.pb.collection('users').create({
+      const collection = args.collection || 'users';
+      const result = await this.pb.collection(collection).create({
         email: args.email,
         password: args.password,
         passwordConfirm: args.passwordConfirm,

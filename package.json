@@ -12,7 +12,7 @@
     "pocketbase": "^0.20.1"
   },
   "devDependencies": {
-    "@types/node": "^20.17.10",
+    "@types/node": "^20.17.24",
     "typescript": "^5.3.3"
   }
 }
