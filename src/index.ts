@@ -193,6 +193,11 @@ class PocketBaseServer {
                 type: 'string',
                 description: 'Collection name (default: users)',
                 default: 'users'
+              },
+              isAdmin: {
+                type: 'boolean',
+                description: 'Whether to authenticate as an admin (uses _superusers collection)',
+                default: false
               }
             },
             required: ['email', 'password'],
@@ -789,10 +794,21 @@ class PocketBaseServer {
 
   private async authenticateUser(args: any) {
     try {
-      const collection = args.collection || 'users';
+      // Use _superusers collection for admin authentication
+      const collection = args.isAdmin ? '_superusers' : (args.collection || 'users');
+      
+      // For admin authentication, use environment variables if email/password not provided
+      const email = args.isAdmin && !args.email ? process.env.POCKETBASE_ADMIN_EMAIL : args.email;
+      const password = args.isAdmin && !args.password ? process.env.POCKETBASE_ADMIN_PASSWORD : args.password;
+      
+      if (!email || !password) {
+        throw new Error('Email and password are required for authentication');
+      }
+      
       const authData = await this.pb
         .collection(collection)
-        .authWithPassword(args.email, args.password);
+        .authWithPassword(email, password);
+      
       return {
         content: [
           {
