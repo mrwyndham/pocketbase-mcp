@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.6.1",
-    "pocketbase": "^0.20.1"
+    "pocketbase": "^0.25.2"
   },
   "devDependencies": {
     "@types/node": "^20.17.24",

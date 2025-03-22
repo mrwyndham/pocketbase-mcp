@@ -7,7 +7,7 @@ import {
   ListToolsRequestSchema,
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
-import PocketBase, { CollectionModel, CollectionIndex, CollectionResponse, SchemaField } from 'pocketbase';
+import PocketBase from 'pocketbase';
 
 class PocketBaseServer {
   private server: Server;
@@ -54,23 +54,66 @@ class PocketBaseServer {
             properties: {
               name: {
                 type: 'string',
-                description: 'Collection name',
+                description: 'Unique collection name (used as a table name for the records table)',
               },
-              schema: {
+              type: {
+                type: 'string',
+                description: 'Type of the collection',
+                enum: ['base', 'view', 'auth'],
+                default: 'base',
+              },
+              fields: {
                 type: 'array',
-                description: 'Collection schema fields',
+                description: 'List with the collection fields',
                 items: {
                   type: 'object',
                   properties: {
-                    name: { type: 'string' },
-                    type: { type: 'string' },
-                    required: { type: 'boolean' },
-                    options: { type: 'object' },
+                    name: { type: 'string', description: 'Field name' },
+                    type: { type: 'string', description: 'Field type' },
+                    required: { type: 'boolean', description: 'Is field required?' },
+                    values: {
+                      type: 'array',
+                      items: { type: 'string' },
+                      description: 'Allowed values for select type fields',
+                    },
+                    collectionId: { type: 'string', description: 'Collection ID for relation type fields' }
+                  },
+                },
+              },
+              createRule: {
+                type: 'string',
+                description: 'API rule for creating records',
+              },
+              updateRule: {
+                type: 'string',
+                description: 'API rule for updating records',
+              },
+              deleteRule: {
+                type: 'string',
+                description: 'API rule for deleting records',
+              },
+              listRule: {
+                type: 'string',
+                description: 'API rule for listing records',
+              },
+              viewQuery: {
+                type: 'string',
+                description: 'SQL query for view collections',
+              },
+              passwordAuth: {
+                type: 'object',
+                description: 'Password authentication options',
+                properties: {
+                  enabled: { type: 'boolean', description: 'Is password authentication enabled?' },
+                  identityFields: {
+                    type: 'array',
+                    items: { type: 'string' },
+                    description: 'Fields used for identity in password authentication',
                   },
                 },
               },
             },
-            required: ['name', 'schema'],
+            required: ['name', 'fields'],
           },
         },
         {
@@ -399,17 +442,22 @@ class PocketBaseServer {
           inputSchema: {
             type: 'object',
             properties: {
-              userId: {
+              id: {
                 type: 'string',
                 description: 'ID of the user to impersonate',
               },
-              collection: {
+              collectionIdOrName: {
                 type: 'string',
-                description: 'Collection name (default: users)',
+                description: 'Collection name or id (default: users)',
                 default: 'users'
+              },
+              duration: {
+                type: 'number',
+                description: 'Token expirey time (default: 3600)',
+                default: 3600
               }
             },
-            required: ['userId'],
+            required: ['id'],
           },
         },
         {
@@ -444,17 +492,21 @@ class PocketBaseServer {
           },
         },
         {
-          name: 'get_collection_schema',
-          description: 'Get schema details for a collection',
+          name: 'get_collection',
+          description: 'Get details for a collection',
           inputSchema: {
             type: 'object',
             properties: {
-              collection: {
+              collectionIdOrName: {
                 type: 'string',
-                description: 'Collection name',
+                description: 'ID or name of the collection to view',
+              },
+              fields: {
+                type: 'string',
+                description: 'Comma separated string of the fields to return in the JSON response',
               },
             },
-            required: ['collection'],
+            required: ['collectionIdOrName'],
           },
         },
         {
@@ -463,10 +515,9 @@ class PocketBaseServer {
           inputSchema: {
             type: 'object',
             properties: {
-              format: {
+              name: {
                 type: 'string',
-                enum: ['json', 'csv'],
-                description: 'Export format (default: json)',
+                description: 'backup name',
               },
             },
           },
@@ -498,92 +549,20 @@ class PocketBaseServer {
           },
         },
         {
-          name: 'migrate_collection',
-          description: 'Migrate collection schema with data preservation',
+          name: 'list_collections',
+          description: 'List all collections in PocketBase',
           inputSchema: {
             type: 'object',
             properties: {
-              collection: {
-                type: 'string',
-                description: 'Collection name',
-              },
-              newSchema: {
-                type: 'array',
-                description: 'New collection schema',
-                items: {
-                  type: 'object',
-                  properties: {
-                    name: { type: 'string' },
-                    type: { type: 'string' },
-                    required: { type: 'boolean' },
-                    options: { type: 'object' },
-                  },
-                },
-              },
-              dataTransforms: {
-                type: 'object',
-                description: 'Field transformation mappings',
-              },
-            },
-            required: ['collection', 'newSchema'],
-          },
-        },
-        {
-          name: 'query_collection',
-          description: 'Advanced query with filtering, sorting, and aggregation',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              collection: {
-                type: 'string',
-                description: 'Collection name',
-              },
               filter: {
                 type: 'string',
-                description: 'Filter expression',
+                description: 'Filter query for collections',
               },
               sort: {
                 type: 'string',
-                description: 'Sort expression',
-              },
-              aggregate: {
-                type: 'object',
-                description: 'Aggregation settings',
-              },
-              expand: {
-                type: 'string',
-                description: 'Relations to expand',
+                description: 'Sort order for collections',
               },
             },
-            required: ['collection'],
-          },
-        },
-        {
-          name: 'manage_indexes',
-          description: 'Manage collection indexes',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              collection: {
-                type: 'string',
-                description: 'Collection name',
-              },
-              action: {
-                type: 'string',
-                enum: ['create', 'delete', 'list'],
-                description: 'Action to perform',
-              },
-              index: {
-                type: 'object',
-                description: 'Index configuration (for create)',
-                properties: {
-                  name: { type: 'string' },
-                  fields: { type: 'array', items: { type: 'string' } },
-                  unique: { type: 'boolean' },
-                },
-              },
-            },
-            required: ['collection', 'action'],
           },
         },
       ],
@@ -602,44 +581,16 @@ class PocketBaseServer {
             return await this.updateRecord(request.params.arguments);
           case 'delete_record':
             return await this.deleteRecord(request.params.arguments);
-          case 'list_auth_methods':
-            return await this.listAuthMethods(request.params.arguments);
           case 'authenticate_user':
             return await this.authenticateUser(request.params.arguments);
-          case 'authenticate_with_oauth2':
-            return await this.authenticateWithOAuth2(request.params.arguments);
-          case 'authenticate_with_otp':
-            return await this.authenticateWithOtp(request.params.arguments);
-          case 'auth_refresh':
-            return await this.authRefresh(request.params.arguments);
-          case 'request_verification':
-            return await this.requestVerification(request.params.arguments);
-          case 'confirm_verification':
-            return await this.confirmVerification(request.params.arguments);
-          case 'request_password_reset':
-            return await this.requestPasswordReset(request.params.arguments);
-          case 'confirm_password_reset':
-            return await this.confirmPasswordReset(request.params.arguments);
-          case 'request_email_change':
-            return await this.requestEmailChange(request.params.arguments);
-          case 'confirm_email_change':
-            return await this.confirmEmailChange(request.params.arguments);
-          case 'impersonate_user':
-            return await this.impersonateUser(request.params.arguments);
           case 'create_user':
             return await this.createUser(request.params.arguments);
-          case 'get_collection_schema':
-            return await this.getCollectionSchema(request.params.arguments);
+          case 'get_collection':
+            return await this.getCollection(request.params.arguments);
           case 'backup_database':
             return await this.backupDatabase(request.params.arguments);
-          case 'import_data':
-            return await this.importData(request.params.arguments);
-          case 'migrate_collection':
-            return await this.migrateCollection(request.params.arguments);
-          case 'query_collection':
-            return await this.queryCollection(request.params.arguments);
-          case 'manage_indexes':
-            return await this.manageIndexes(request.params.arguments);
+          case 'list_collections':
+            return await this.listCollections(request.params.arguments);
           default:
             throw new McpError(
               ErrorCode.MethodNotFound,
@@ -660,10 +611,39 @@ class PocketBaseServer {
 
   private async createCollection(args: any) {
     try {
-      const result = await this.pb.collections.create({
-        name: args.name,
-        schema: args.schema,
-      });
+      // Authenticate with PocketBase
+      await this.pb.collection("_superusers").authWithPassword(process.env.POCKETBASE_ADMIN_EMAIL ?? '', process.env.POCKETBASE_ADMIN_PASSWORD ?? '');
+
+      // Ensure 'created' and 'updated' fields are always included
+      const defaultFields = [
+        {
+          hidden: false,
+          id: "autodate_created",
+          name: "created",
+          onCreate: true,
+          onUpdate: false,
+          presentable: false,
+          system: false,
+          type: "autodate"
+        },
+        {
+          hidden: false,
+          id: "autodate_updated",
+          name: "updated",
+          onCreate: true,
+          onUpdate: true,
+          presentable: false,
+          system: false,
+          type: "autodate"
+        }
+      ];
+
+      const collectionData = {
+        ...args,
+        fields: [...(args.fields || []), ...defaultFields]
+      };
+
+      const result = await this.pb.collections.create(collectionData as any);
       return {
         content: [
           {
@@ -675,7 +655,7 @@ class PocketBaseServer {
     } catch (error: unknown) {
       throw new McpError(
         ErrorCode.InternalError,
-        `Failed to create collection: ${error instanceof Error ? error.message : String(error)}`
+        `[${error instanceof Error ? error.name : String(error)}] Failed to create collection: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }
@@ -772,26 +752,6 @@ class PocketBaseServer {
     }
   }
 
-  private async listAuthMethods(args: any) {
-    try {
-      const collection = args.collection || 'users';
-      const authMethods = await this.pb.collection(collection).listAuthMethods();
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(authMethods, null, 2),
-          },
-        ],
-      };
-    } catch (error: unknown) {
-      throw new McpError(
-        ErrorCode.InternalError,
-        `Failed to list auth methods: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-  }
-
   private async authenticateUser(args: any) {
     try {
       // Use _superusers collection for admin authentication
@@ -825,238 +785,6 @@ class PocketBaseServer {
     }
   }
 
-  private async authenticateWithOAuth2(args: any) {
-    try {
-      const collection = args.collection || 'users';
-      const authData = await this.pb
-        .collection(collection)
-        .authWithOAuth2(
-          args.provider,
-          args.code,
-          args.codeVerifier,
-          args.redirectUrl
-        );
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(authData, null, 2),
-          },
-        ],
-      };
-    } catch (error: unknown) {
-      throw new McpError(
-        ErrorCode.InternalError,
-        `OAuth2 authentication failed: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-  }
-
-  private async authenticateWithOtp(args: any) {
-    try {
-      const collection = args.collection || 'users';
-      const result = await this.pb
-        .collection(collection)
-        .authWithOtp(args.email);
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({ success: result }, null, 2),
-          },
-        ],
-      };
-    } catch (error: unknown) {
-      throw new McpError(
-        ErrorCode.InternalError,
-        `OTP authentication failed: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-  }
-
-  private async authRefresh(args: any) {
-    try {
-      const collection = args.collection || 'users';
-      const authData = await this.pb
-        .collection(collection)
-        .authRefresh();
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(authData, null, 2),
-          },
-        ],
-      };
-    } catch (error: unknown) {
-      throw new McpError(
-        ErrorCode.InternalError,
-        `Auth refresh failed: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-  }
-
-  private async requestVerification(args: any) {
-    try {
-      const collection = args.collection || 'users';
-      const result = await this.pb
-        .collection(collection)
-        .requestVerification(args.email);
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({ success: result }, null, 2),
-          },
-        ],
-      };
-    } catch (error: unknown) {
-      throw new McpError(
-        ErrorCode.InternalError,
-        `Verification request failed: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-  }
-
-  private async confirmVerification(args: any) {
-    try {
-      const collection = args.collection || 'users';
-      const result = await this.pb
-        .collection(collection)
-        .confirmVerification(args.token);
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({ success: result }, null, 2),
-          },
-        ],
-      };
-    } catch (error: unknown) {
-      throw new McpError(
-        ErrorCode.InternalError,
-        `Verification confirmation failed: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-  }
-
-  private async requestPasswordReset(args: any) {
-    try {
-      const collection = args.collection || 'users';
-      const result = await this.pb
-        .collection(collection)
-        .requestPasswordReset(args.email);
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({ success: result }, null, 2),
-          },
-        ],
-      };
-    } catch (error: unknown) {
-      throw new McpError(
-        ErrorCode.InternalError,
-        `Password reset request failed: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-  }
-
-  private async confirmPasswordReset(args: any) {
-    try {
-      const collection = args.collection || 'users';
-      const result = await this.pb
-        .collection(collection)
-        .confirmPasswordReset(
-          args.token,
-          args.password,
-          args.passwordConfirm
-        );
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({ success: result }, null, 2),
-          },
-        ],
-      };
-    } catch (error: unknown) {
-      throw new McpError(
-        ErrorCode.InternalError,
-        `Password reset confirmation failed: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-  }
-
-  private async requestEmailChange(args: any) {
-    try {
-      const collection = args.collection || 'users';
-      const result = await this.pb
-        .collection(collection)
-        .requestEmailChange(args.newEmail);
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({ success: result }, null, 2),
-          },
-        ],
-      };
-    } catch (error: unknown) {
-      throw new McpError(
-        ErrorCode.InternalError,
-        `Email change request failed: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-  }
-
-  private async confirmEmailChange(args: any) {
-    try {
-      const collection = args.collection || 'users';
-      const authData = await this.pb
-        .collection(collection)
-        .confirmEmailChange(
-          args.token,
-          args.password
-        );
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(authData, null, 2),
-          },
-        ],
-      };
-    } catch (error: unknown) {
-      throw new McpError(
-        ErrorCode.InternalError,
-        `Email change confirmation failed: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-  }
-
-  private async impersonateUser(args: any) {
-    try {
-      const collection = args.collection || 'users';
-      const authData = await this.pb
-        .collection(collection)
-        .impersonate(args.userId);
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(authData, null, 2),
-          },
-        ],
-      };
-    } catch (error: unknown) {
-      throw new McpError(
-        ErrorCode.InternalError,
-        `User impersonation failed: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-  }
-
   private async createUser(args: any) {
     try {
       const collection = args.collection || 'users';
@@ -1082,67 +810,45 @@ class PocketBaseServer {
     }
   }
 
-  private async getCollectionSchema(args: any) {
+  private async getCollection(args: any) {
     try {
-      const collection = await this.pb.collections.getOne(args.collection);
+      // Authenticate with PocketBase
+      await this.pb.collection("_superusers").authWithPassword(process.env.POCKETBASE_ADMIN_EMAIL ?? '', process.env.POCKETBASE_ADMIN_PASSWORD ?? '');
+      
+      // Get collection details
+      const collection = await this.pb.collections.getOne(args.collectionIdOrName, {
+        fields: args.fields
+      });
+      
       return {
         content: [
           {
             type: 'text',
-            text: JSON.stringify(collection.schema, null, 2),
+            text: JSON.stringify(collection, null, 2),
           },
         ],
       };
     } catch (error: unknown) {
       throw new McpError(
         ErrorCode.InternalError,
-        `Failed to get collection schema: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to get collection: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }
 
   private async backupDatabase(args: any) {
     try {
-      const format = args.format || 'json';
-      const collections = await this.pb.collections.getList(1, 100);
-      const backup: any = {};
-
-      for (const collection of collections) {
-        const records = await this.pb
-          .collection(collection.name)
-          .getFullList();
-        backup[collection.name] = {
-          schema: collection.schema,
-          records,
-        };
-      }
-
-      if (format === 'csv') {
-        // Convert to CSV format
-        let csv = '';
-        for (const [collectionName, data] of Object.entries(backup) as [string, { schema: SchemaField[], records: Record<string, any>[] }][]) {
-          csv += `Collection: ${collectionName}\n`;
-          csv += `Schema:\n${JSON.stringify(data.schema, null, 2)}\n`;
-          csv += 'Records:\n';
-          if (data.records.length > 0) {
-            const headers = Object.keys(data.records[0]);
-            csv += headers.join(',') + '\n';
-            data.records.forEach((record) => {
-              csv += headers.map(header => JSON.stringify(record[header])).join(',') + '\n';
-            });
-          }
-          csv += '\n';
-        }
-        return {
-          content: [{ type: 'text', text: csv }],
-        };
-      }
-
+      // Authenticate with PocketBase
+      await this.pb.collection("_superusers").authWithPassword(process.env.POCKETBASE_ADMIN_EMAIL ?? '', process.env.POCKETBASE_ADMIN_PASSWORD ?? '');
+      
+      // Create a new backup
+      const backupResult = await this.pb.backups.create(args.name ?? '', {});
+      
       return {
         content: [
           {
             type: 'text',
-            text: JSON.stringify(backup, null, 2),
+            text: JSON.stringify(backupResult, null, 2),
           },
         ],
       };
@@ -1154,220 +860,33 @@ class PocketBaseServer {
     }
   }
 
-  private async importData(args: any) {
+  private async listCollections(args: any) {
     try {
-      const mode = args.mode || 'create';
-      const collection = this.pb.collection(args.collection);
-      const results = [];
+      // Authenticate with PocketBase
+      await this.pb.collection("_superusers").authWithPassword(process.env.POCKETBASE_ADMIN_EMAIL ?? '', process.env.POCKETBASE_ADMIN_PASSWORD ?? '');
 
-      for (const record of args.data) {
-        let result;
-        switch (mode) {
-          case 'create':
-            result = await collection.create(record);
-            break;
-          case 'update':
-            if (!record.id) {
-              throw new McpError(ErrorCode.InvalidParams, 'Record ID required for update mode');
-            }
-            result = await collection.update(record.id, record);
-            break;
-          case 'upsert':
-            if (record.id) {
-              try {
-                result = await collection.update(record.id, record);
-              } catch {
-                result = await collection.create(record);
-              }
-            } else {
-              result = await collection.create(record);
-            }
-            break;
-          default:
-            throw new McpError(ErrorCode.InvalidParams, `Invalid import mode: ${mode}`);
-        }
-        results.push(result);
+      // Fetch collections based on provided arguments
+      let collections;
+      if (args.filter) {
+        collections = await this.pb.collections.getFirstListItem(args.filter);
+      } else if (args.sort) {
+        collections = await this.pb.collections.getFullList({ sort: args.sort });
+      } else {
+        collections = await this.pb.collections.getList(1, 100);
       }
 
       return {
         content: [
           {
             type: 'text',
-            text: JSON.stringify(results, null, 2),
+            text: JSON.stringify(collections, null, 2),
           },
         ],
       };
     } catch (error: unknown) {
       throw new McpError(
         ErrorCode.InternalError,
-        `Failed to import data: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-  }
-
-  private async migrateCollection(args: any) {
-    try {
-      // Create new collection with temporary name
-      const tempName = `${args.collection}_migration_${Date.now()}`;
-      await this.pb.collections.create({
-        name: tempName,
-        schema: args.newSchema,
-      });
-
-      // Get all records from old collection
-      const oldRecords = await this.pb.collection(args.collection).getFullList();
-
-      // Transform and import records to new collection
-      const transformedRecords = oldRecords.map(record => {
-        const newRecord: any = { ...record };
-        if (args.dataTransforms) {
-          for (const [field, transform] of Object.entries(args.dataTransforms)) {
-            try {
-              // Safely evaluate the transform expression
-              newRecord[field] = new Function('oldValue', `return ${transform}`)(record[field]);
-            } catch (e) {
-              console.error(`Failed to transform field ${field}:`, e);
-            }
-          }
-        }
-        return newRecord;
-      });
-
-      for (const record of transformedRecords) {
-        await this.pb.collection(tempName).create(record);
-      }
-
-      // Delete old collection
-      await this.pb.collections.delete(args.collection);
-
-      // Rename temp collection to original name
-      const renamedCollection = await this.pb.collections.update(tempName, {
-        name: args.collection,
-      });
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(renamedCollection, null, 2),
-          },
-        ],
-      };
-    } catch (error: unknown) {
-      throw new McpError(
-        ErrorCode.InternalError,
-        `Failed to migrate collection: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-  }
-
-  private async queryCollection(args: any) {
-    try {
-      const collection = this.pb.collection(args.collection);
-      const options: any = {};
-
-      if (args.filter) options.filter = args.filter;
-      if (args.sort) options.sort = args.sort;
-      if (args.expand) options.expand = args.expand;
-
-      const records = await collection.getList(1, 100, options) as CollectionResponse;
-      records[Symbol.iterator] = function* () {
-        yield* this.items;
-      };
-
-      let result: any = { items: records.items };
-
-      if (args.aggregate) {
-        const aggregations: any = {};
-        for (const [name, expr] of Object.entries(args.aggregate)) {
-          const [func, field] = (expr as string).split('(');
-          const cleanField = field.replace(')', '');
-          
-          switch (func) {
-            case 'sum':
-              aggregations[name] = records.items.reduce((sum: number, record: any) => 
-                sum + (parseFloat(record[cleanField]) || 0), 0);
-              break;
-            case 'avg':
-              aggregations[name] = records.items.reduce((sum: number, record: any) => 
-                sum + (parseFloat(record[cleanField]) || 0), 0) / records.items.length;
-              break;
-            case 'count':
-              aggregations[name] = records.items.length;
-              break;
-            default:
-              throw new McpError(ErrorCode.InvalidParams, `Unsupported aggregation function: ${func}`);
-          }
-        }
-        result.aggregations = aggregations;
-      }
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(result, null, 2),
-          },
-        ],
-      };
-    } catch (error: unknown) {
-      throw new McpError(
-        ErrorCode.InternalError,
-        `Failed to query collection: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-  }
-
-  private async manageIndexes(args: any) {
-    try {
-      const collection = await this.pb.collections.getOne(args.collection) as CollectionModel;
-      const currentIndexes: CollectionIndex[] = collection.indexes || [];
-      let result;
-
-      switch (args.action) {
-        case 'create':
-          if (!args.index) {
-            throw new McpError(ErrorCode.InvalidParams, 'Index configuration required for create action');
-          }
-          const updatedCollection = await this.pb.collections.update(collection.id, {
-            ...collection,
-            indexes: [...currentIndexes, args.index as CollectionIndex],
-          });
-          result = updatedCollection.indexes;
-          break;
-
-        case 'delete':
-          if (!args.index?.name) {
-            throw new McpError(ErrorCode.InvalidParams, 'Index name required for delete action');
-          }
-          const filteredIndexes = currentIndexes.filter(idx => idx.name !== args.index.name);
-          const collectionAfterDelete = await this.pb.collections.update(collection.id, {
-            ...collection,
-            indexes: filteredIndexes,
-          });
-          result = collectionAfterDelete.indexes;
-          break;
-
-        case 'list':
-          result = currentIndexes;
-          break;
-
-        default:
-          throw new McpError(ErrorCode.InvalidParams, `Invalid index action: ${args.action}`);
-      }
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(result, null, 2),
-          },
-        ],
-      };
-    } catch (error: unknown) {
-      throw new McpError(
-        ErrorCode.InternalError,
-        `Failed to manage indexes: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to list collections: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }
