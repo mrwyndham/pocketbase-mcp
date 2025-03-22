@@ -1,5 +1,8 @@
 # PocketBase MCP Server
-A very much in progress MCP server based off of the Dynamics One that was freely availabe. That provides sophisticated tools for interacting with PocketBase databases. This server enables advanced database operations, schema management, and data manipulation through the Model Context Protocol (MCP).
+A very much in progress MCP server based off of the Dynamics one that I have been testing and refining. That provides sophisticated tools for interacting with PocketBase databases. This server enables advanced database operations, schema management, and data manipulation through the Model Context Protocol (MCP).
+
+## Why This And Not DynamicsEndpoints?
+This has actually been tested on the latest version. Currently 26.1 of PocketBase and is built off of the type definitions in the JS-SDK and not the arbitrary and wrong definitions found in the Dynamics one. Many of the methods don't even work.
 
 ## Setup MCP Server Locally (Only Way Supported for Now)
 
