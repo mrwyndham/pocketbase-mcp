@@ -1,24 +1,58 @@
-# Advanced PocketBase MCP Server
+# PocketBase MCP Server
+A very much in progress MCP server based off of the Dynamics One that was freely availabe. That provides sophisticated tools for interacting with PocketBase databases. This server enables advanced database operations, schema management, and data manipulation through the Model Context Protocol (MCP).
 
-[![smithery badge](https://smithery.ai/badge/pocketbase-server)](https://smithery.ai/server/pocketbase-server)
-A comprehensive MCP server that provides sophisticated tools for interacting with PocketBase databases. This server enables advanced database operations, schema management, and data manipulation through the Model Context Protocol (MCP).
+## Setup MCP Server Locally (Only Way Supported for Now)
 
-<a href="https://glama.ai/mcp/servers/z2xjuegxxh"><img width="380" height="200" src="https://glama.ai/mcp/servers/z2xjuegxxh/badge" alt="pocketbase-mcp-server MCP server" /></a>
+To set up the MCP server locally, you'll need to configure it within your `cline_mcp_settings.json` or whatever you use (claude, cursor, the config looks identical you just need to find where it is stored) file. Here's how:
 
+1.  **Locate your `cline_mcp_settings.json` file:** This file is usually located in your Cursor user settings directory. For example:
+    `/Users/yourusername/Library/Application Support/Cursor/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
+
+2.  **Configure the server:** Add a new entry to the `mcpServers` object in your `cline_mcp_settings.json` file. The key should be a unique name for your server (e.g., "pocketbase-server"), and the value should be an object containing the server's configuration.
+
+    ```json
+    {
+      "mcpServers": {
+        "pocketbase-server": {
+          "command": "node",
+          "args": [
+            "build/index.js"
+          ],
+          "env": {
+            "POCKETBASE_URL": "http://127.0.0.1:8090",
+            "POCKETBASE_ADMIN_EMAIL": "admin@example.com",
+            "POCKETBASE_ADMIN_PASSWORD": "admin_password"
+          },
+          "disabled": false,
+          "autoApprove": [
+            "create_record",
+            "create_collection"
+          ]
+        }
+      }
+    }
+    ```
+
+    *   **`command`**: The command to start the server (usually `node`).
+    *   **`args`**: An array of arguments to pass to the command.  This should point to the compiled JavaScript file of your MCP server (e.g., `build/index.js`).  Make sure the path is correct.
+    *   **`env`**: An object containing environment variables.
+        *   **`POCKETBASE_URL`**:  The URL of your PocketBase instance.  This is *required*.
+        *   **`POCKETBASE_ADMIN_EMAIL`**: The admin email for your PocketBase instance (optional, but needed for some operations).
+        *   **`POCKETBASE_ADMIN_PASSWORD`**: The admin password for your PocketBase instance (optional, but needed for some operations).
+    * **`disabled`**: Whether to disable to server on startup.
+    * **`autoApprove`**: list of tools to auto approve.
+    *   Adjust the values in the `env` object to match your PocketBase instance's settings.
+
+3.  **Start the server:** After configuring the `cline_mcp_settings.json` file, you can start using the MCP server with the configured tools.
 
 ## Features
 
 ### Collection Management
 - Create and manage collections with custom schemas
-- Migrate collection schemas with data preservation
-- Advanced index management (create, delete, list)
-- Schema validation and type safety
 - Retrieve collection schemas and metadata
 
 ### Record Operations
 - CRUD operations for records
-- Advanced querying with filtering, sorting, and aggregation
-- Batch import/export capabilities
 - Relationship expansion support
 - Pagination and cursor-based navigation
 
@@ -26,15 +60,9 @@ A comprehensive MCP server that provides sophisticated tools for interacting wit
 - User authentication and token management
 - User account creation and management
 - Password management
-- Role-based access control
-- Session handling
 
 ### Database Operations
-- Database backup and restore
-- Multiple export formats (JSON/CSV)
-- Data migration tools
-- Index optimization
-- Batch operations
+- Database backup
 
 ## Available Tools
 
@@ -83,8 +111,6 @@ Optional environment variables:
 - `POCKETBASE_DATA_DIR`: Custom data directory path
 
 ## Usage Examples
-
-### Collection Management
 ```typescript
 // Create a new collection
 await mcp.use_tool("pocketbase", "create_collection", {
@@ -103,167 +129,12 @@ await mcp.use_tool("pocketbase", "create_collection", {
   ]
 });
 
-// Manage indexes
-await mcp.use_tool("pocketbase", "manage_indexes", {
-  collection: "posts",
-  action: "create",
-  index: {
-    name: "title_idx",
-    fields: ["title"],
-    unique: true
-  }
-});
-```
-
-### Advanced Querying
-```typescript
-// Query with filtering, sorting, and aggregation
-await mcp.use_tool("pocketbase", "query_collection", {
-  collection: "posts",
-  filter: "created >= '2024-01-01'",
-  sort: "-created",
-  aggregate: {
-    totalLikes: "sum(likes)",
-    avgRating: "avg(rating)"
-  },
-  expand: "author,categories"
-});
-```
-
-### Data Import/Export
-```typescript
-// Import data with upsert mode
-await mcp.use_tool("pocketbase", "import_data", {
-  collection: "posts",
-  data: [
-    {
-      title: "First Post",
-      content: "Hello World"
-    },
-    {
-      title: "Second Post",
-      content: "More content"
-    }
-  ],
-  mode: "upsert"
-});
-
-// Backup database
-await mcp.use_tool("pocketbase", "backup_database", {
-  format: "json" // or "csv"
-});
-```
-
-### Schema Migration
-```typescript
-// Migrate collection schema
-await mcp.use_tool("pocketbase", "migrate_collection", {
-  collection: "posts",
-  newSchema: [
-    {
-      name: "title",
-      type: "text",
-      required: true
-    },
-    {
-      name: "content",
-      type: "text",
-      required: true
-    },
-    {
-      name: "tags",
-      type: "json",
-      required: false
-    }
-  ],
-  dataTransforms: {
-    // Optional field transformations during migration
-    tags: "JSON.parse(oldTags)"
-  }
-});
-```
-
-### Authentication Methods
-```typescript
-// List available authentication methods
-await mcp.use_tool("pocketbase", "list_auth_methods", {
-  collection: "users"
-});
-
 // Authenticate with password
 await mcp.use_tool("pocketbase", "authenticate_user", {
   email: "user@example.com",
   password: "securepassword",
   collection: "users"
 });
-
-// Authenticate with OAuth2
-await mcp.use_tool("pocketbase", "authenticate_with_oauth2", {
-  provider: "google",
-  code: "auth_code_from_provider",
-  codeVerifier: "code_verifier_from_pkce",
-  redirectUrl: "https://your-app.com/auth/callback",
-  collection: "users"
-});
-
-// Request password reset
-await mcp.use_tool("pocketbase", "request_password_reset", {
-  email: "user@example.com",
-  collection: "users"
-});
-
-// Confirm password reset
-await mcp.use_tool("pocketbase", "confirm_password_reset", {
-  token: "verification_token",
-  password: "new_password",
-  passwordConfirm: "new_password",
-  collection: "users"
-});
-
-// Refresh authentication token
-await mcp.use_tool("pocketbase", "auth_refresh", {
-  collection: "users"
-});
-```
-
-## Error Handling
-
-All tools include comprehensive error handling with detailed error messages. Errors are properly typed and include:
-- Invalid request errors
-- Authentication errors
-- Database operation errors
-- Schema validation errors
-- Network errors
-
-## Type Safety
-
-The server includes TypeScript definitions for all operations, ensuring type safety when using the tools. Each tool's input schema is strictly typed and validated.
-
-## Best Practices
-
-1. Always use proper error handling with try/catch blocks
-2. Validate data before performing operations
-3. Use appropriate indexes for better query performance
-4. Regularly backup your database
-5. Use migrations for schema changes
-6. Follow security best practices for user management
-7. Monitor and optimize database performance
-
-## Development
-
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Copy `.env.example` to `.env` and configure
-4. Build: `npm run build`
-5. Start your PocketBase instance
-6. The MCP server will automatically connect to your PocketBase instance
-
-## Installing via Smithery
-
-To install PocketBase Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/pocketbase-server):
-
-```bash
-npx -y @smithery/cli install pocketbase-server --client claude
 ```
 
 ## Contributing
