@@ -69,7 +69,7 @@ class PocketBaseServer {
                   type: 'object',
                   properties: {
                     name: { type: 'string', description: 'Field name' },
-                    type: { type: 'string', description: 'Field type' },
+                    type: { type: 'string', description: 'Field type', enum: ['bool', 'date', 'number', 'text', 'email', 'url', 'editor', 'autodate', 'select', 'file', 'relation', 'json'] },
                     required: { type: 'boolean', description: 'Is field required?' },
                     values: {
                       type: 'array',
@@ -91,10 +91,6 @@ class PocketBaseServer {
               deleteRule: {
                 type: 'string',
                 description: 'API rule for deleting records',
-              },
-              listRule: {
-                type: 'string',
-                description: 'API rule for listing records',
               },
               viewQuery: {
                 type: 'string',
