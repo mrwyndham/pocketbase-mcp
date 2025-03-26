@@ -48,7 +48,7 @@ class PocketBaseServer {
       tools: [
         {
           name: 'create_collection',
-          description: 'Create a new collection in PocketBase',
+          description: 'Create a new collection in PocketBase note never use created and updated because these are already created',
           inputSchema: {
             type: 'object',
             properties: {
@@ -610,7 +610,6 @@ class PocketBaseServer {
       // Authenticate with PocketBase
       await this.pb.collection("_superusers").authWithPassword(process.env.POCKETBASE_ADMIN_EMAIL ?? '', process.env.POCKETBASE_ADMIN_PASSWORD ?? '');
 
-      // Ensure 'created' and 'updated' fields are always included
       const defaultFields = [
         {
           hidden: false,
