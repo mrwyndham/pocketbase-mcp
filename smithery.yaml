@@ -1,0 +1,29 @@
+# Smithery configuration file: https://smithery.ai/docs/build/project-config
+
+startCommand:
+  type: stdio
+  commandFunction:
+    # A JS function that produces the CLI command based on the given config to start the MCP on stdio.
+    |-
+    (config) => ({ command: 'node', args: ['build/index.js'], env: { POCKETBASE_URL: config.pocketBaseUrl, POCKETBASE_ADMIN_EMAIL: config.pocketBaseAdminEmail ?? '', POCKETBASE_ADMIN_PASSWORD: config.pocketBaseAdminPassword ?? '' } })
+  configSchema:
+    # JSON Schema defining the configuration options for the MCP.
+    type: object
+    required:
+      - pocketBaseUrl
+    properties:
+      pocketBaseUrl:
+        type: string
+        description: URL of the PocketBase instance
+      pocketBaseAdminEmail:
+        type: string
+        default: ""
+        description: Admin email for PocketBase instance
+      pocketBaseAdminPassword:
+        type: string
+        default: ""
+        description: Admin password for PocketBase instance
+  exampleConfig:
+    pocketBaseUrl: http://127.0.0.1:8090
+    pocketBaseAdminEmail: admin@example.com
+    pocketBaseAdminPassword: password
