@@ -1,4 +1,5 @@
 # PocketBase MCP Server
+[![smithery badge](https://smithery.ai/badge/@mrwyndham/pocketbase-mcp)](https://smithery.ai/server/@mrwyndham/pocketbase-mcp)
 A very much in progress MCP server based off of the Dynamics one that I have been testing and refining. That provides sophisticated tools for interacting with PocketBase databases. This server enables advanced database operations, schema management, and data manipulation through the Model Context Protocol (MCP).
 
 Here is a video of me using it: https://www.youtube.com/watch?v=ZuTIO3I7rTM&t=345s
@@ -7,6 +8,14 @@ Here is a video of me using it: https://www.youtube.com/watch?v=ZuTIO3I7rTM&t=34
 This has actually been tested on the latest version. Currently 26.1 of PocketBase and is built off of the type definitions in the JS-SDK and not the arbitrary and wrong definitions found in the Dynamics one. Many of the methods don't even work.
 
 ## Setup MCP Server Locally (Only Way Supported for Now)
+
+### Installing via Smithery
+
+To install PocketBase Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@mrwyndham/pocketbase-mcp):
+
+```bash
+npx -y @smithery/cli install @mrwyndham/pocketbase-mcp --client claude
+```
 
 To set up the MCP server locally, you'll need to configure it within your `cline_mcp_settings.json` or whatever you use (claude, cursor, the config looks identical you just need to find where it is stored) file. Here's how:
 
