@@ -92,6 +92,14 @@ class PocketBaseServer {
                 type: 'string',
                 description: 'API rule for deleting records',
               },
+              listRule: {
+                type: 'string',
+                description: 'API rule for listing and viewing records',
+              },
+              viewRule: {
+                type: 'string',
+                description: 'API rule for viewing a single record',
+              },
               viewQuery: {
                 type: 'string',
                 description: 'SQL query for view collections',
@@ -110,6 +118,83 @@ class PocketBaseServer {
               },
             },
             required: ['name', 'fields'],
+          },
+        },
+        {
+          name: 'update_collection',
+          description: 'Update an existing collection in PocketBase (admin only)',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              collectionIdOrName: {
+                type: 'string',
+                description: 'ID or name of the collection to update',
+              },
+              name: {
+                type: 'string',
+                description: 'New unique collection name',
+              },
+              type: {
+                type: 'string',
+                description: 'Type of the collection',
+                enum: ['base', 'view', 'auth'],
+              },
+              fields: {
+                type: 'array',
+                description: 'List with the new collection fields. If not empty, the old schema will be replaced with the new one.',
+                items: {
+                  type: 'object',
+                  properties: {
+                    name: { type: 'string', description: 'Field name' },
+                    type: { type: 'string', description: 'Field type', enum: ['bool', 'date', 'number', 'text', 'email', 'url', 'editor', 'autodate', 'select', 'file', 'relation', 'json'] },
+                    required: { type: 'boolean', description: 'Is field required?' },
+                    values: {
+                      type: 'array',
+                      items: { type: 'string' },
+                      description: 'Allowed values for select type fields',
+                    },
+                    collectionId: { type: 'string', description: 'Collection ID for relation type fields' }
+                  },
+                },
+              },
+              createRule: {
+                type: 'string',
+                description: 'API rule for creating records',
+              },
+              updateRule: {
+                type: 'string',
+                description: 'API rule for updating records',
+              },
+              deleteRule: {
+                type: 'string',
+                description: 'API rule for deleting records',
+              },
+              listRule: {
+                type: 'string',
+                description: 'API rule for listing and viewing records',
+              },
+              viewRule: {
+                type: 'string',
+                description: 'API rule for viewing a single record',
+              },
+              viewQuery: {
+                type: 'string',
+                description: 'SQL query for view collections',
+              },
+              passwordAuth: {
+                type: 'object',
+                description: 'Password authentication options',
+                properties: {
+                  enabled: { type: 'boolean', description: 'Is password authentication enabled?' },
+                  identityFields: {
+                    type: 'array',
+                    items: { type: 'string' },
+                    description: 'Fields used for identity in password authentication',
+                  },
+                },
+              },
+            },
+            required: ['collectionIdOrName'],
           },
         },
         {
@@ -561,6 +646,20 @@ class PocketBaseServer {
             },
           },
         },
+        {
+          name: 'delete_collection',
+          description: 'Delete a collection from PocketBase (admin only)',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              collectionIdOrName: {
+                type: 'string',
+                description: 'ID or name of the collection to delete',
+              },
+            },
+            required: ['collectionIdOrName'],
+          },
+        },
       ],
     }));
 
@@ -569,6 +668,8 @@ class PocketBaseServer {
         switch (request.params.name) {
           case 'create_collection':
             return await this.createCollection(request.params.arguments);
+          case 'update_collection':
+            return await this.updateCollection(request.params.arguments);
           case 'create_record':
             return await this.createRecord(request.params.arguments);
           case 'list_records':
@@ -587,6 +688,8 @@ class PocketBaseServer {
             return await this.backupDatabase(request.params.arguments);
           case 'list_collections':
             return await this.listCollections(request.params.arguments);
+          case 'delete_collection':
+            return await this.deleteCollection(request.params.arguments);
           default:
             throw new McpError(
               ErrorCode.MethodNotFound,
@@ -651,6 +754,29 @@ class PocketBaseServer {
       throw new McpError(
         ErrorCode.InternalError,
         `[${error instanceof Error ? error.name : String(error)}] Failed to create collection: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  private async updateCollection(args: any) {
+    try {
+      // Authenticate with PocketBase as admin
+      await this.pb.collection("_superusers").authWithPassword(process.env.POCKETBASE_ADMIN_EMAIL ?? '', process.env.POCKETBASE_ADMIN_PASSWORD ?? '');
+
+      const { collectionIdOrName, ...updateData } = args;
+      const result = await this.pb.collections.update(collectionIdOrName, updateData as any);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (error: unknown) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `[${error instanceof Error ? error.name : String(error)}] Failed to update collection: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }
@@ -882,6 +1008,30 @@ class PocketBaseServer {
       throw new McpError(
         ErrorCode.InternalError,
         `Failed to list collections: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  private async deleteCollection(args: any) {
+    try {
+      // Authenticate with PocketBase as admin (required for collection deletion)
+      await this.pb.collection("_superusers").authWithPassword(process.env.POCKETBASE_ADMIN_EMAIL ?? '', process.env.POCKETBASE_ADMIN_PASSWORD ?? '');
+      
+      // Delete the collection
+      await this.pb.collections.delete(args.collectionIdOrName);
+      
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Successfully deleted collection ${args.collectionIdOrName}`,
+          },
+        ],
+      };
+    } catch (error: unknown) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Failed to delete collection: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }
