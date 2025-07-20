@@ -9,6 +9,8 @@ import {
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
 import PocketBase from 'pocketbase';
+import { pocketbaseErrorMessage } from "./utils/errors";
+
 
 class PocketBaseServer {
   private server: Server;
@@ -703,7 +705,7 @@ class PocketBaseServer {
         }
         throw new McpError(
           ErrorCode.InternalError,
-          `PocketBase error: ${error instanceof Error ? error.message : String(error)}`
+          `PocketBase error: ${pocketbaseErrorMessage(error)}`
         );
       }
     });
@@ -754,7 +756,7 @@ class PocketBaseServer {
     } catch (error: unknown) {
       throw new McpError(
         ErrorCode.InternalError,
-        `[${error instanceof Error ? error.name : String(error)}] Failed to create collection: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to create collection: ${pocketbaseErrorMessage(error)}`
       );
     }
   }
@@ -777,7 +779,7 @@ class PocketBaseServer {
     } catch (error: unknown) {
       throw new McpError(
         ErrorCode.InternalError,
-        `[${error instanceof Error ? error.name : String(error)}] Failed to update collection: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to update collection: ${pocketbaseErrorMessage(error)}`
       );
     }
   }
@@ -796,7 +798,7 @@ class PocketBaseServer {
     } catch (error: unknown) {
       throw new McpError(
         ErrorCode.InternalError,
-        `Failed to create record: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to create record: ${pocketbaseErrorMessage(error)}`
       );
     }
   }
@@ -829,7 +831,7 @@ class PocketBaseServer {
     } catch (error: unknown) {
       throw new McpError(
         ErrorCode.InternalError,
-        `Failed to list records: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to list records: ${pocketbaseErrorMessage(error)}`
       );
     }
   }
@@ -850,7 +852,7 @@ class PocketBaseServer {
     } catch (error: unknown) {
       throw new McpError(
         ErrorCode.InternalError,
-        `Failed to update record: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to update record: ${pocketbaseErrorMessage(error)}`
       );
     }
   }
@@ -869,7 +871,7 @@ class PocketBaseServer {
     } catch (error: unknown) {
       throw new McpError(
         ErrorCode.InternalError,
-        `Failed to delete record: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to delete record: ${pocketbaseErrorMessage(error)}`
       );
     }
   }
@@ -902,7 +904,7 @@ class PocketBaseServer {
     } catch (error: unknown) {
       throw new McpError(
         ErrorCode.InternalError,
-        `Authentication failed: ${error instanceof Error ? error.message : String(error)}`
+        `Authentication failed: ${pocketbaseErrorMessage(error)}`
       );
     }
   }
@@ -927,7 +929,7 @@ class PocketBaseServer {
     } catch (error: unknown) {
       throw new McpError(
         ErrorCode.InternalError,
-        `Failed to create user: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to create user: ${pocketbaseErrorMessage(error)}`
       );
     }
   }
@@ -953,7 +955,7 @@ class PocketBaseServer {
     } catch (error: unknown) {
       throw new McpError(
         ErrorCode.InternalError,
-        `Failed to get collection: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to get collection: ${pocketbaseErrorMessage(error)}`
       );
     }
   }
@@ -977,7 +979,7 @@ class PocketBaseServer {
     } catch (error: unknown) {
       throw new McpError(
         ErrorCode.InternalError,
-        `Failed to backup database: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to backup database: ${pocketbaseErrorMessage(error)}`
       );
     }
   }
@@ -1008,7 +1010,7 @@ class PocketBaseServer {
     } catch (error: unknown) {
       throw new McpError(
         ErrorCode.InternalError,
-        `Failed to list collections: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to list collections: ${pocketbaseErrorMessage(error)}`
       );
     }
   }
@@ -1032,7 +1034,7 @@ class PocketBaseServer {
     } catch (error: unknown) {
       throw new McpError(
         ErrorCode.InternalError,
-        `Failed to delete collection: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to delete collection: ${pocketbaseErrorMessage(error)}`
       );
     }
   }
