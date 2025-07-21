@@ -4,15 +4,17 @@
   "type": "module",
   "scripts": {
     "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
+    "prestart": "npm run build",
     "start": "node build/index.js",
     "dev": "tsc -w"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.6.1",
-    "pocketbase": "^0.25.2"
+    "pocketbase": "^0.26.1"
   },
   "devDependencies": {
-    "@types/node": "^20.17.24",
-    "typescript": "^5.3.3"
+    "@types/node": "^24.0.15",
+    "dotenv": "^17.2.0",
+    "typescript": "^5.8.3"
   }
 }

@@ -32,3 +32,5 @@ pb_migrations/
 # OS files
 .DS_Store
 Thumbs.db
+
+.env
