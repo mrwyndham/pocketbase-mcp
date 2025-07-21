@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
+    "prestart": "npm run build",
     "start": "node build/index.js",
     "dev": "tsc -w"
   },

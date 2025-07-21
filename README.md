@@ -48,7 +48,40 @@ To set up the MCP server locally, you'll need to configure it within your `cline
     * **`autoApprove`**: list of tools to auto approve.
     *   Adjust the values in the `env` object to match your PocketBase instance's settings.
 
-3.  **Start the server:** After configuring the `cline_mcp_settings.json` file, you can start using the MCP server with the configured tools.
+- Setup in vscode is similar , find or create `.vscode/mcp.json` and add
+```json
+{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "pocketbase-admin-email",
+      "description": "PocketBase Admin Email",
+      "password": false
+    },
+    {
+      "type": "promptString", 
+      "id": "pocketbase-admin-password",
+      "description": "PocketBase Admin Password",
+      "password": true
+    }
+  ],
+  "servers": {
+    "pocketbaseServer": {
+      "type": "stdio",
+      "command": "node",
+      // replace this with the path to your compiled MCP server (git clone the repo and run `npm run build` to compile)
+      "args": ["~/Desktop/code/mcp/pocketbase-mcp/build/index.js"],
+      "env": {
+        "POCKETBASE_URL": "http://127.0.0.1:8090",
+        "POCKETBASE_ADMIN_EMAIL": "${input:pocketbase-admin-email}",
+        "POCKETBASE_ADMIN_PASSWORD": "${input:pocketbase-admin-password}"
+      }
+    }
+  }
+}
+```
+
+1.  **Start the server:** After configuring the `cline_mcp_settings.json` file, you can start using the MCP server with the configured tools.
 
 ## Features
 
