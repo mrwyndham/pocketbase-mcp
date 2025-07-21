@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/mrwyndham-pocketbase-mcp-badge.png)](https://mseep.ai/app/mrwyndham-pocketbase-mcp)
+
 # PocketBase MCP Server
 A very much in progress MCP server based off of the Dynamics one that I have been testing and refining. That provides sophisticated tools for interacting with PocketBase databases. This server enables advanced database operations, schema management, and data manipulation through the Model Context Protocol (MCP).
 
