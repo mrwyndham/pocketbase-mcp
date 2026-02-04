@@ -10,6 +10,29 @@ import PocketBase from 'pocketbase';
 
 
 
+const DEFAULT_FIELDS = [
+  {
+    hidden: false,
+    id: "autodate_created",
+    name: "created",
+    onCreate: true,
+    onUpdate: false,
+    presentable: false,
+    system: false,
+    type: "autodate"
+  },
+  {
+    hidden: false,
+    id: "autodate_updated",
+    name: "updated",
+    onCreate: true,
+    onUpdate: true,
+    presentable: false,
+    system: false,
+    type: "autodate"
+  }
+];
+
 class PocketBaseServer {
   private server: Server;
   private pb: PocketBase;
@@ -69,6 +92,7 @@ class PocketBaseServer {
                 items: {
                   type: 'object',
                   properties: {
+                    id: { type: 'string', description: 'Field ID (required for updating existing fields)' },
                     name: { type: 'string', description: 'Field name' },
                     type: { type: 'string', description: 'Field type', enum: ['bool', 'date', 'number', 'text', 'email', 'url', 'editor', 'autodate', 'select', 'file', 'relation', 'json', 'geoPoint'] },
                     required: { type: 'boolean', description: 'Is field required?' },
@@ -146,6 +170,7 @@ class PocketBaseServer {
                 items: {
                   type: 'object',
                   properties: {
+                    id: { type: 'string', description: 'Field ID (required for updating existing fields)' },
                     name: { type: 'string', description: 'Field name' },
                     type: { type: 'string', description: 'Field type', enum: ['bool', 'date', 'number', 'text', 'email', 'url', 'editor', 'autodate', 'select', 'file', 'relation', 'json', 'geoPoint'] },
                     required: { type: 'boolean', description: 'Is field required?' },
@@ -714,32 +739,18 @@ class PocketBaseServer {
       // Authenticate with PocketBase
       await this.pb.collection("_superusers").authWithPassword(process.env.POCKETBASE_ADMIN_EMAIL ?? '', process.env.POCKETBASE_ADMIN_PASSWORD ?? '');
 
-      const defaultFields = [
-        {
-          hidden: false,
-          id: "autodate_created",
-          name: "created",
-          onCreate: true,
-          onUpdate: false,
-          presentable: false,
-          system: false,
-          type: "autodate"
-        },
-        {
-          hidden: false,
-          id: "autodate_updated",
-          name: "updated",
-          onCreate: true,
-          onUpdate: true,
-          presentable: false,
-          system: false,
-          type: "autodate"
+      const fields = args.fields || [];
+      const updatedFields = [...fields];
+
+      for (const defaultField of DEFAULT_FIELDS) {
+        if (!updatedFields.some(f => f.name === defaultField.name)) {
+          updatedFields.push(defaultField);
         }
-      ];
+      }
 
       const collectionData = {
         ...args,
-        fields: [...(args.fields || []), ...defaultFields]
+        fields: updatedFields
       };
 
       const result = await this.pb.collections.create(collectionData as any);
@@ -761,10 +772,50 @@ class PocketBaseServer {
 
   private async updateCollection(args: any) {
     try {
-      // Authenticate with PocketBase as admin
+      // 使用管理员身份登录
       await this.pb.collection("_superusers").authWithPassword(process.env.POCKETBASE_ADMIN_EMAIL ?? '', process.env.POCKETBASE_ADMIN_PASSWORD ?? '');
 
       const { collectionIdOrName, ...updateData } = args;
+
+      // 获取当前集合定义，以便合并字段修改
+      const currentCollection = await this.pb.collections.getOne(collectionIdOrName);
+      const currentFields = (currentCollection as any).fields || [];
+
+      if (updateData.fields) {
+        const inputFields = updateData.fields || [];
+
+        // 使用当前字段作为基础，进行合并更新
+        let resultFields = [...currentFields];
+
+        for (const inputField of inputFields) {
+          let foundIndex = -1;
+
+          // 优先通过 ID 匹配，其次通过名称匹配
+          if (inputField.id) {
+            foundIndex = resultFields.findIndex((f: any) => f.id === inputField.id);
+          } else if (inputField.name) {
+            foundIndex = resultFields.findIndex((f: any) => f.name === inputField.name);
+          }
+
+          if (foundIndex !== -1) {
+            // 更新现有字段，保留原有 ID 并覆盖新属性
+            resultFields[foundIndex] = { ...resultFields[foundIndex], ...inputField };
+          } else {
+            // 如果没找到匹配项，视为新增字段
+            resultFields.push(inputField);
+          }
+        }
+
+        // 确保默认字段（created, updated）始终存在
+        for (const defaultField of DEFAULT_FIELDS) {
+          if (!resultFields.some((f: any) => f.name === defaultField.name)) {
+            resultFields.push(defaultField);
+          }
+        }
+
+        updateData.fields = resultFields;
+      }
+
       const result = await this.pb.collections.update(collectionIdOrName, updateData as any);
       return {
         content: [
