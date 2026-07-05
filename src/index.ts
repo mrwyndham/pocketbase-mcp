@@ -5,10 +5,18 @@ import {
   ErrorCode,
   ListToolsRequestSchema,
   McpError,
+  Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import PocketBase from 'pocketbase';
 
-
+type ToolWithAnnotations = Tool & {
+  annotations?: {
+    readOnlyHint?: boolean;
+    destructiveHint?: boolean;
+    idempotentHint?: boolean;
+    openWorldHint?: boolean;
+  };
+};
 
 class PocketBaseServer {
   private server: Server;
@@ -50,6 +58,11 @@ class PocketBaseServer {
         {
           name: 'create_collection',
           description: 'Create a new collection in PocketBase note never use created and updated because these are already created',
+          annotations: {
+            readOnlyHint: false,
+            destructiveHint: false,
+            idempotentHint: false,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -124,6 +137,11 @@ class PocketBaseServer {
         {
           name: 'update_collection',
           description: 'Update an existing collection in PocketBase (admin only)',
+          annotations: {
+            readOnlyHint: false,
+            destructiveHint: true,
+            idempotentHint: true,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -201,6 +219,11 @@ class PocketBaseServer {
         {
           name: 'create_record',
           description: 'Create a new record in a collection',
+          annotations: {
+            readOnlyHint: false,
+            destructiveHint: false,
+            idempotentHint: false,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -219,6 +242,11 @@ class PocketBaseServer {
         {
           name: 'list_records',
           description: 'List records from a collection with optional filters',
+          annotations: {
+            readOnlyHint: true,
+            destructiveHint: false,
+            idempotentHint: true,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -249,6 +277,11 @@ class PocketBaseServer {
         {
           name: 'update_record',
           description: 'Update an existing record',
+          annotations: {
+            readOnlyHint: false,
+            destructiveHint: true,
+            idempotentHint: true,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -271,6 +304,11 @@ class PocketBaseServer {
         {
           name: 'delete_record',
           description: 'Delete a record',
+          annotations: {
+            readOnlyHint: false,
+            destructiveHint: true,
+            idempotentHint: false,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -289,6 +327,11 @@ class PocketBaseServer {
         {
           name: 'list_auth_methods',
           description: 'List all available authentication methods',
+          annotations: {
+            readOnlyHint: true,
+            destructiveHint: false,
+            idempotentHint: true,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -303,6 +346,11 @@ class PocketBaseServer {
         {
           name: 'authenticate_user',
           description: 'Authenticate a user with email and password',
+          annotations: {
+            readOnlyHint: true,
+            destructiveHint: false,
+            idempotentHint: true,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -331,6 +379,11 @@ class PocketBaseServer {
         {
           name: 'authenticate_with_oauth2',
           description: 'Authenticate a user with OAuth2',
+          annotations: {
+            readOnlyHint: true,
+            destructiveHint: false,
+            idempotentHint: true,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -362,6 +415,11 @@ class PocketBaseServer {
         {
           name: 'authenticate_with_otp',
           description: 'Authenticate a user with one-time password',
+          annotations: {
+            readOnlyHint: false,
+            destructiveHint: false,
+            idempotentHint: false,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -381,6 +439,11 @@ class PocketBaseServer {
         {
           name: 'auth_refresh',
           description: 'Refresh authentication token',
+          annotations: {
+            readOnlyHint: true,
+            destructiveHint: false,
+            idempotentHint: true,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -395,6 +458,11 @@ class PocketBaseServer {
         {
           name: 'request_verification',
           description: 'Request email verification',
+          annotations: {
+            readOnlyHint: false,
+            destructiveHint: false,
+            idempotentHint: false,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -414,6 +482,11 @@ class PocketBaseServer {
         {
           name: 'confirm_verification',
           description: 'Confirm email verification with token',
+          annotations: {
+            readOnlyHint: false,
+            destructiveHint: false,
+            idempotentHint: false,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -433,6 +506,11 @@ class PocketBaseServer {
         {
           name: 'request_password_reset',
           description: 'Request password reset',
+          annotations: {
+            readOnlyHint: false,
+            destructiveHint: false,
+            idempotentHint: false,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -452,6 +530,11 @@ class PocketBaseServer {
         {
           name: 'confirm_password_reset',
           description: 'Confirm password reset with token',
+          annotations: {
+            readOnlyHint: false,
+            destructiveHint: false,
+            idempotentHint: false,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -479,6 +562,11 @@ class PocketBaseServer {
         {
           name: 'request_email_change',
           description: 'Request email change',
+          annotations: {
+            readOnlyHint: false,
+            destructiveHint: false,
+            idempotentHint: false,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -498,6 +586,11 @@ class PocketBaseServer {
         {
           name: 'confirm_email_change',
           description: 'Confirm email change with token',
+          annotations: {
+            readOnlyHint: false,
+            destructiveHint: false,
+            idempotentHint: false,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -521,6 +614,11 @@ class PocketBaseServer {
         {
           name: 'impersonate_user',
           description: 'Impersonate another user (admin only)',
+          annotations: {
+            readOnlyHint: true,
+            destructiveHint: false,
+            idempotentHint: true,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -545,6 +643,11 @@ class PocketBaseServer {
         {
           name: 'create_user',
           description: 'Create a new user account',
+          annotations: {
+            readOnlyHint: false,
+            destructiveHint: false,
+            idempotentHint: false,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -576,6 +679,11 @@ class PocketBaseServer {
         {
           name: 'get_collection',
           description: 'Get details for a collection',
+          annotations: {
+            readOnlyHint: true,
+            destructiveHint: false,
+            idempotentHint: true,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -594,6 +702,11 @@ class PocketBaseServer {
         {
           name: 'backup_database',
           description: 'Create a backup of the PocketBase database',
+          annotations: {
+            readOnlyHint: false,
+            destructiveHint: false,
+            idempotentHint: false,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -607,6 +720,11 @@ class PocketBaseServer {
         {
           name: 'import_data',
           description: 'Import data into a collection',
+          annotations: {
+            readOnlyHint: false,
+            destructiveHint: true,
+            idempotentHint: false,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -633,6 +751,11 @@ class PocketBaseServer {
         {
           name: 'list_collections',
           description: 'List all collections in PocketBase',
+          annotations: {
+            readOnlyHint: true,
+            destructiveHint: false,
+            idempotentHint: true,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -650,6 +773,11 @@ class PocketBaseServer {
         {
           name: 'delete_collection',
           description: 'Delete a collection from PocketBase (admin only)',
+          annotations: {
+            readOnlyHint: false,
+            destructiveHint: true,
+            idempotentHint: false,
+          },
           inputSchema: {
             type: 'object',
             properties: {
@@ -661,7 +789,7 @@ class PocketBaseServer {
             required: ['collectionIdOrName'],
           },
         },
-      ],
+      ] as ToolWithAnnotations[],
     }));
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
