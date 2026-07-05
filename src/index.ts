@@ -133,7 +133,7 @@ class PocketBaseServer {
             },
             required: ['name', 'fields'],
           },
-        } as ToolWithAnnotations,
+        },
         {
           name: 'update_collection',
           description: 'Update an existing collection in PocketBase (admin only)',
@@ -215,7 +215,7 @@ class PocketBaseServer {
             },
             required: ['collectionIdOrName'],
           },
-        } as ToolWithAnnotations,
+        },
         {
           name: 'create_record',
           description: 'Create a new record in a collection',
@@ -238,7 +238,7 @@ class PocketBaseServer {
             },
             required: ['collection', 'data'],
           },
-        } as ToolWithAnnotations,
+        },
         {
           name: 'list_records',
           description: 'List records from a collection with optional filters',
@@ -273,7 +273,7 @@ class PocketBaseServer {
             },
             required: ['collection'],
           },
-        } as ToolWithAnnotations,
+        },
         {
           name: 'update_record',
           description: 'Update an existing record',
@@ -300,7 +300,7 @@ class PocketBaseServer {
             },
             required: ['collection', 'id', 'data'],
           },
-        } as ToolWithAnnotations,
+        },
         {
           name: 'delete_record',
           description: 'Delete a record',
@@ -323,7 +323,7 @@ class PocketBaseServer {
             },
             required: ['collection', 'id'],
           },
-        } as ToolWithAnnotations,
+        },
         {
           name: 'list_auth_methods',
           description: 'List all available authentication methods',
@@ -342,7 +342,7 @@ class PocketBaseServer {
               }
             }
           }
-        } as ToolWithAnnotations,
+        },
         {
           name: 'authenticate_user',
           description: 'Authenticate a user with email and password',
@@ -375,7 +375,7 @@ class PocketBaseServer {
             },
             required: ['email', 'password'],
           },
-        } as ToolWithAnnotations,
+        },
         {
           name: 'authenticate_with_oauth2',
           description: 'Authenticate a user with OAuth2',
@@ -411,7 +411,7 @@ class PocketBaseServer {
             },
             required: ['provider', 'code', 'codeVerifier', 'redirectUrl'],
           },
-        } as ToolWithAnnotations,
+        },
         {
           name: 'authenticate_with_otp',
           description: 'Authenticate a user with one-time password',
@@ -435,7 +435,7 @@ class PocketBaseServer {
             },
             required: ['email'],
           },
-        } as ToolWithAnnotations,
+        },
         {
           name: 'auth_refresh',
           description: 'Refresh authentication token',
@@ -454,7 +454,7 @@ class PocketBaseServer {
               }
             }
           },
-        } as ToolWithAnnotations,
+        },
         {
           name: 'request_verification',
           description: 'Request email verification',
@@ -478,7 +478,7 @@ class PocketBaseServer {
             },
             required: ['email'],
           },
-        } as ToolWithAnnotations,
+        },
         {
           name: 'confirm_verification',
           description: 'Confirm email verification with token',
@@ -502,7 +502,7 @@ class PocketBaseServer {
             },
             required: ['token'],
           },
-        } as ToolWithAnnotations,
+        },
         {
           name: 'request_password_reset',
           description: 'Request password reset',
@@ -526,7 +526,7 @@ class PocketBaseServer {
             },
             required: ['email'],
           },
-        } as ToolWithAnnotations,
+        },
         {
           name: 'confirm_password_reset',
           description: 'Confirm password reset with token',
@@ -558,7 +558,7 @@ class PocketBaseServer {
             },
             required: ['token', 'password', 'passwordConfirm'],
           },
-        } as ToolWithAnnotations,
+        },
         {
           name: 'request_email_change',
           description: 'Request email change',
@@ -582,7 +582,7 @@ class PocketBaseServer {
             },
             required: ['newEmail'],
           },
-        } as ToolWithAnnotations,
+        },
         {
           name: 'confirm_email_change',
           description: 'Confirm email change with token',
@@ -610,7 +610,7 @@ class PocketBaseServer {
             },
             required: ['token', 'password'],
           },
-        } as ToolWithAnnotations,
+        },
         {
           name: 'impersonate_user',
           description: 'Impersonate another user (admin only)',
@@ -639,7 +639,7 @@ class PocketBaseServer {
             },
             required: ['id'],
           },
-        } as ToolWithAnnotations,
+        },
         {
           name: 'create_user',
           description: 'Create a new user account',
@@ -675,7 +675,7 @@ class PocketBaseServer {
             },
             required: ['email', 'password', 'passwordConfirm'],
           },
-        } as ToolWithAnnotations,
+        },
         {
           name: 'get_collection',
           description: 'Get details for a collection',
@@ -698,7 +698,7 @@ class PocketBaseServer {
             },
             required: ['collectionIdOrName'],
           },
-        } as ToolWithAnnotations,
+        },
         {
           name: 'backup_database',
           description: 'Create a backup of the PocketBase database',
@@ -716,7 +716,7 @@ class PocketBaseServer {
               },
             },
           },
-        } as ToolWithAnnotations,
+        },
         {
           name: 'import_data',
           description: 'Import data into a collection',
@@ -747,7 +747,7 @@ class PocketBaseServer {
             },
             required: ['collection', 'data'],
           },
-        } as ToolWithAnnotations,
+        },
         {
           name: 'list_collections',
           description: 'List all collections in PocketBase',
@@ -769,7 +769,7 @@ class PocketBaseServer {
               },
             },
           },
-        } as ToolWithAnnotations,
+        },
         {
           name: 'delete_collection',
           description: 'Delete a collection from PocketBase (admin only)',
@@ -788,8 +788,8 @@ class PocketBaseServer {
             },
             required: ['collectionIdOrName'],
           },
-        } as ToolWithAnnotations,
-      ],
+        },
+      ] as ToolWithAnnotations[],
     }));
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
