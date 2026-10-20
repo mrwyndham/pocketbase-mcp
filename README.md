@@ -306,3 +306,7 @@ await mcp.use_tool("pocketbase", "authenticate_user", {
 3. Commit your changes
 4. Push to the branch
 5. Create a Pull Request
+
+## Sponsors
+
+- [Biz365](https://www.biz365.com.au/)
